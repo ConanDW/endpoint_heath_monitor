@@ -39,16 +39,16 @@ def check_cpu_constrained():
     
 def main():
     checks = [
-        (check_reboot, "Pending Reboot."),
+        (check_reboot(), "Pending Reboot."),
         (check_disk_usage("/"), "Disk is getting full."),
-        (check_no_network, "No working network."),
-        (check_cpu_constrained, "CPU load too high.")
+        (check_no_network(), "No working network."),
+        (check_cpu_constrained(), "CPU load too high.")
     ]
     percent_free = check_disk_usage("/")
     free_ram = check_free_ram()
     everything_ok=True
     for check, msg in checks:
-        if check():
+        if check:
           print(msg)
           everything_ok = False
     
