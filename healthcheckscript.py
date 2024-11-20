@@ -19,10 +19,11 @@ def check_disk_usage(disk):
     if percent_free < min_percent or gigabytes_free < min_gb:
         return True, percent_free
     else:
-        return False
+        return False, percent_free()
 
 def check_free_ram():
-    free_ram = psutil.virtual_memory
+    """Returns free ram."""
+    free_ram = psutil.virtual_memory()
     return free_ram
 
 def check_no_network():
@@ -35,8 +36,12 @@ def check_no_network():
     
 def check_cpu_constrained():
     """Returns True if the cpu is having too much usage, False otherwise."""
-    return psutil.cpu_percent(1) > 75
-    
+    cpu_usage = psutil.cpu_percent()
+    if psutil.cpu_percent(1) > 75:
+        return True, cpu_usage
+    else:
+        return False, cpu_usage
+
 def main():
     checks = [
         (check_reboot(), "Pending Reboot."),
@@ -44,8 +49,10 @@ def main():
         (check_no_network(), "No working network."),
         (check_cpu_constrained(), "CPU load too high.")
     ]
-    percent_free = check_disk_usage("/")
-    free_ram = check_free_ram()
+    percent_free = check_disk_usage("/")[1]
+    free_ram = check_free_ram()[2]
+    free_cpu = check_cpu_constrained()[1]
+    free_cpu = 100.0 - free_cpu
     everything_ok=True
     for check, msg in checks:
         if check:
@@ -53,10 +60,11 @@ def main():
           everything_ok = False
     
     if not everything_ok:
+        print("Free Ram (%): {}, Free Disk Space (%): {}, CPU Free (%): {}".format(str(free_ram), percent_free, free_cpu))
         sys.exit(1)
     
     print("Everything ok.")
-    print("Free Ram: {}, Free Disk Space (%): {}".format(free_ram, percent_free))
+    print("Free Ram (%): {}, Free Disk Space (%): {}, CPU Free (%): {}".format(str(free_ram), percent_free, free_cpu))
     sys.exit(0)
     
 
